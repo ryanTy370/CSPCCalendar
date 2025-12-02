@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Contest Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 131, 176, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: #0083b0;
+            border-color: #00b4db;
+            box-shadow: 0 0 15px rgba(0, 180, 219, 0.3);
+        }
+
+        .platform-icon {
+            font-size: 1.1rem;
+        }
+
+        .refresh-btn {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            border: none;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            min-width: 150px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .contest-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .contest-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #00b4db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .contest-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .contest-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .contest-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #00b4db;
+        }
+
+        .contest-platform {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .codeforces {
+            background: rgba(59, 89, 152, 0.3);
+            color: #8bb9ff;
+            border-left: 4px solid #3b5998;
+        }
+
+        .codechef {
+            background: rgba(96, 125, 139, 0.3);
+            color: #b0bec5;
+            border-left: 4px solid #607d8b;
+        }
+
+        .atcoder {
+            background: rgba(244, 67, 54, 0.3);
+            color: #ff8a80;
+            border-left: 4px solid #f44336;
+        }
+
+        .leetcode {
+            background: rgba(255, 152, 0, 0.3);
+            color: #ffcc80;
+            border-left: 4px solid #ff9800;
+        }
+
+        .contest-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .contest-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .contest-date {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .contest-countdown {
+            font-size: 0.9rem;
+            color: #00b4db;
+            margin-top: 5px;
+        }
+
+        .contest-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .register-btn {
+            background: linear-gradient(to right, #00b4db, #0083b0);
+            color: white;
+        }
+
+        .register-btn:hover {
+            background: linear-gradient(to right, #0083b0, #005f7a);
+        }
+
+        .details-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .details-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #00b4db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .contest-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .contest-time, .contest-actions {
+                width: 100%;
+            }
+            
+            .contest-actions {
+                justify-content: flex-start;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stat-box {
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-code"></i> CSP Contest Calendar</h1>
+            <p class="subtitle">Stay updated with upcoming competitive programming contests</p>
+        </header>
+
+        <div class="controls">
+            <button class="filter-btn active" data-platform="all">
+                <i class="fas fa-globe platform-icon"></i> All Platforms
+            </button>
+            <button class="filter-btn" data-platform="codeforces">
+                <i class="fas fa-chart-line platform-icon"></i> Codeforces
+            </button>
+            <button class="filter-btn" data-platform="codechef">
+                <i class="fas fa-utensils platform-icon"></i> CodeChef
+            </button>
+            <button class="filter-btn" data-platform="atcoder">
+                <i class="fas fa-flag platform-icon"></i> AtCoder
+            </button>
+            <button class="refresh-btn" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Refresh Contests
+            </button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="totalContests">0</div>
+                <div class="stat-label">Total Contests</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="upcomingContests">0</div>
+                <div class="stat-label">Upcoming (7 days)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="codeforcesCount">0</div>
+                <div class="stat-label">Codeforces</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="codechefCount">0</div>
+                <div class="stat-label">CodeChef</div>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2 class="calendar-title">Upcoming Contests</h2>
+                <div class="filter-info" id="filterInfo">Showing all contests</div>
+            </div>
+            
+            <div class="contest-list" id="contestList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading contests...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with <i class="fas fa-heart" style="color:#ff4081;"></i> for competitive programmers | Data fetched from public APIs</p>
+            <p>Note: This is a demo with mock data. For real-time data, implement actual API calls.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mock contest data (in a real app, you would fetch from APIs)
+        const mockContests = [
+            {
+                id: 1,
+                name: "Codeforces Round #987 (Div. 3)",
+                platform: "codeforces",
+                date: "2024-06-15T14:00:00",
+                duration: 2,
+                url: "https://codeforces.com/contest/987"
+            },
+            {
+                id: 2,
+                name: "CodeChef June Long Challenge 2024",
+                platform: "codechef",
+                date: "2024-06-18T15:00:00",
+                duration: 10,
+                url: "https://www.codechef.com/JUNE24"
+            },
+            {
+                id: 3,
+                name: "AtCoder Beginner Contest 350",
+                platform: "atcoder",
+                date: "2024-06-20T12:00:00",
+                duration: 1.5,
+                url: "https://atcoder.jp/contests/abc350"
+            },
+            {
+                id: 4,
+                name: "Codeforces Round #988 (Div. 2)",
+                platform: "codeforces",
+                date: "2024-06-22T17:00:00",
+                duration: 2.5,
+                url: "https://codeforces.com/contest/988"
+            },
+            {
+                id: 5,
+                name: "CodeChef Starters 120",
+                platform: "codechef",
+                date: "2024-06-25T20:00:00",
+                duration: 2.5,
+                url: "https://www.codechef.com/START120"
+            },
+            {
+                id: 6,
+                name: "AtCoder Regular Contest 180",
+                platform: "atcoder",
+                date: "2024-06-28T14:00:00",
+                duration: 2,
+                url: "https://atcoder.jp/contests/arc180"
+            },
+            {
+                id: 7,
+                name: "Codeforces Educational Round 165",
+                platform: "codeforces",
+                date: "2024-07-01T16:30:00",
+                duration: 2,
+                url: "https://codeforces.com/contest/165"
+            },
+            {
+                id: 8,
+                name: "CodeChef Lunchtime July 2024",
+                platform: "codechef",
+                date: "2024-07-05T12:30:00",
+                duration: 3,
+                url: "https://www.codechef.com/LTIME112"
+            }
+        ];
+
+        // DOM elements
+        const contestList = document.getElementById('contestList');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const totalContestsEl = document.getElementById('totalContests');
+        const upcomingContestsEl = document.getElementById('upcomingContests');
+        const codeforcesCountEl = document.getElementById('codeforcesCount');
+        const codechefCountEl = document.getElementById('codechefCount');
+        const filterInfoEl = document.getElementById('filterInfo');
+
+        // State
+        let currentFilter = 'all';
+        let contests = [...mockContests];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderContests();
+            updateStats();
+            startCountdowns();
+            
+            // Set up filter buttons
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const platform = btn.dataset.platform;
+                    setFilter(platform);
+                });
+            });
+            
+            // Set up refresh button
+            refreshBtn.addEventListener('click', () => {
+                refreshContests();
+            });
+        });
+
+        // Set filter and update display
+        function setFilter(platform) {
+            currentFilter = platform;
+            
+            // Update active button
+            filterButtons.forEach(btn => {
+                if (btn.dataset.platform === platform) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update filter info
+            if (platform === 'all') {
+                filterInfoEl.textContent = 'Showing all contests';
+            } else {
+                filterInfoEl.textContent = `Showing ${platform} contests`;
+            }
+            
+            renderContests();
+        }
+
+        // Render contests based on current filter
+        function renderContests() {
+            // Filter contests
+            let filteredContests = contests;
+            if (currentFilter !== 'all') {
+                filteredContests = contests.filter(contest => 
+                    contest.platform === currentFilter
+                );
+            }
+            
+            // Sort by date
+            filteredContests.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Generate HTML
+            if (filteredContests.length === 0) {
+                contestList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                        <p>No contests found for the selected platform.</p>
+                        <p>Try selecting "All Platforms" or check back later.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            filteredContests.forEach(contest => {
+                const contestDate = new Date(contest.date);
+                const now = new Date();
+                const timeDiff = contestDate - now;
+                const daysUntil = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hoursUntil = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                
+                // Format date
+                const formattedDate = contestDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                const formattedTime = contestDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZoneName: 'short'
+                });
+                
+                // Countdown text
+                let countdownText = '';
+                if (timeDiff <= 0) {
+                    countdownText = 'Started';
+                } else if (daysUntil > 0) {
+                    countdownText = `In ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
+                } else if (hoursUntil > 0) {
+                    countdownText = `In ${hoursUntil} hour${hoursUntil !== 1 ? 's' : ''}`;
+                } else {
+                    const minutesUntil = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    countdownText = `In ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''}`;
+                }
+                
+                // Platform class
+                const platformClass = contest.platform.toLowerCase();
+                
+                // Platform display name
+                const platformNames = {
+                    codeforces: 'Codeforces',
+                    codechef: 'CodeChef',
+                    atcoder: 'AtCoder',
+                    leetcode: 'LeetCode'
+                };
+                
+                html += `
+                    <div class="contest-card">
+                        <div class="contest-info">
+                            <div class="contest-name">${contest.name}</div>
+                            <span class="contest-platform ${platformClass}">${platformNames[contest.platform] || contest.platform}</span>
+                            <div class="contest-details">
+                                <div class="detail-item">
+                                    <i class="far fa-clock"></i>
+                                    <span>${contest.duration} ${contest.duration === 1 ? 'hour' : 'hours'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>${formattedDate}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>${contest.url.replace('https://', '')}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contest-time">
+                            <div class="contest-date">${formattedTime}</div>
+                            <div class="contest-countdown" id="countdown-${contest.id}">${countdownText}</div>
+                        </div>
+                        <div class="contest-actions">
+                            <button class="action-btn register-btn" onclick="window.open('${contest.url}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> Register
+                            </button>
+                            <button class="action-btn details-btn" onclick="showContestDetails(${contest.id})">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contestList.innerHTML = html;
+        }
+
+        // Update statistics
+        function updateStats() {
+            const now = new Date();
+            const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            
+            // Count contests by platform
+            const codeforcesCount = contests.filter(c => c.platform === 'codeforces').length;
+            const codechefCount = contests.filter(c => c.platform === 'codechef').length;
+            const atcoderCount = contests.filter(c => c.platform === 'atcoder').length;
+            
+            // Count contests in next 7 days
+            const upcomingCount = contests.filter(c => {
+                const contestDate = new Date(c.date);
+                return contestDate > now && contestDate <= nextWeek;
+            }).length;
+            
+            // Update DOM
+            totalContestsEl.textContent = contests.length;
+            upcomingContestsEl.textContent = upcomingCount;
+            codeforcesCountEl.textContent = codeforcesCount;
+            codechefCountEl.textContent = codechefCount;
+        }
+
+        // Start countdown timers
+        function startCountdowns() {
+            // Update countdowns every minute
+            setInterval(() => {
+                contests.forEach(contest => {
+                    const countdownEl = document.getElementById(`countdown-${contest.id}`);
+                    if (!countdownEl) return;
+                    
+                    const contestDate = new Date(contest.date);
+                    const now = new Date();
+                    const timeDiff = contestDate - now;
+                    
+                    // Update countdown text
+                    if (timeDiff <= 0) {
+                        countdownEl.textContent = 'Started';
+                        countdownEl.style.color = '#ff6b6b';
+                    } else {
+                        const daysUntil = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                        const hoursUntil = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        
+                        if (daysUntil > 0) {
+                            countdownEl.textContent = `In ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
+                        } else if (hoursUntil > 0) {
+                            countdownEl.textContent = `In ${hoursUntil} hour${hoursUntil !== 1 ? 's' : ''}`;
+                        } else {
+                            const minutesUntil = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                            countdownEl.textContent = `In ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''}`;
+                            
+                            // Change color when less than 1 hour remains
+                            if (minutesUntil < 60) {
+                                countdownEl.style.color = '#ffcc00';
+                            }
+                        }
+                    }
+                });
+            }, 60000); // Update every minute
+        }
+
+        // Refresh contests (simulate API call)
+        function refreshContests() {
+            // Show loading state
+            contestList.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Refreshing contests...</p>
+                </div>
+            `;
+            
+            // Simulate API delay
+            setTimeout(() => {
+                // In a real app, you would fetch from actual APIs here
+                // For now, we'll just shuffle the mock data to simulate new contests
+                contests = [...mockContests].sort(() => Math.random() - 0.5);
+                
+                // Add a "new" contest occasionally
+                if (Math.random() > 0.5) {
+                    const newId = contests.length + 1;
+                    const platforms = ['codeforces', 'codechef', 'atcoder'];
+                    const platform = platforms[Math.floor(Math.random() * platforms.length)];
+                    
+                    const newDate = new Date();
+                    newDate.setDate(newDate.getDate() + Math.floor(Math.random() * 14) + 2);
+                    
+                    contests.push({
+                        id: newId,
+                        name: `New ${platform.charAt(0).toUpperCase() + platform.slice(1)} Contest`,
+                        platform: platform,
+                        date: newDate.toISOString(),
+                        duration: Math.floor(Math.random() * 3) + 1,
+                        url: `https://${platform}.com/newcontest`
+                    });
+                }
+                
+                renderContests();
+                updateStats();
+                
+                // Show success message
+                showNotification('Contests refreshed successfully!', 'success');
+            }, 1500);
+        }
+
+        // Show contest details
+        function showContestDetails(contestId) {
+            const contest = contests.find(c => c.id === contestId);
+            if (!contest) return;
+            
+            const contestDate = new Date(contest.date);
+            const formattedDate = contestDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            alert(`Contest Details:\n\n` +
+                  `Name: ${contest.name}\n` +
+                  `Platform: ${contest.platform}\n` +
+                  `Date & Time: ${formattedDate}\n` +
+                  `Duration: ${contest.duration} hours\n` +
+                  `URL: ${contest.url}`);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#2ecc71' : '#3498db'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span style="margin-left: 10px;">${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+            
+            // Add CSS for animations if not already present
+            if (!document.getElementById('notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    </script>
+</body>
+</html>
